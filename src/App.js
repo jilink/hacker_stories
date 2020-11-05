@@ -2,19 +2,47 @@ import logo from "./logo.svg";
 import "./App.css";
 import React, { useState } from "react";
 
-const List = ({ list }) =>
-  list.map((item) => <Item key={item.objectId} {...item} />);
+const List = ({ list, onRemoveItem }) =>
+  list.map((item) => (
+    <Item key={item.objectId} item={item} onRemoveItem={onRemoveItem} />
+  ));
 
-const Item = ({ title, url, author, num_comments, points }) => (
-  <div>
-    <span>
-      <a href={url}>{title}</a>
-    </span>
-    <span>{author}</span>
-    <span>{num_comments}</span>
-    <span>{points}</span>
-  </div>
-);
+const Item = ({ item, onRemoveItem }) => {
+  return (
+    <div>
+      <span>
+        <a href={item.url}>{item.title}</a>
+      </span>
+      <span>{item.author}</span>
+      <span>{item.num_comments}</span>
+      <span>{item.points}</span>
+      <span>
+        <button type="button" onClick={() => onRemoveItem(item)}>
+          Dismiss
+        </button>
+      </span>
+    </div>
+  );
+};
+
+const initialStories = [
+  {
+    title: "React",
+    url: "https://reactjs.org/",
+    author: "Jordan walke",
+    num_comments: 3,
+    points: 4,
+    objectId: 0,
+  },
+  {
+    title: "Redux",
+    url: "https://redux.js.org/",
+    author: "Dan truc",
+    num_comments: 2,
+    points: 5,
+    objectId: 1,
+  },
+];
 
 const useSemiPersistentState = (key, initialState) => {
   const [value, setValue] = React.useState(
@@ -28,26 +56,16 @@ const useSemiPersistentState = (key, initialState) => {
 };
 
 const App = () => {
-  const stories = [
-    {
-      title: "React",
-      url: "https://reactjs.org/",
-      author: "Jordan walke",
-      num_comments: 3,
-      points: 4,
-      objectId: 0,
-    },
-    {
-      title: "Redux",
-      url: "https://redux.js.org/",
-      author: "Dan truc",
-      num_comments: 2,
-      points: 5,
-      objectId: 1,
-    },
-  ];
-
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
+
+  const [stories, setStories] = React.useState(initialStories);
+
+  const handleRemoveStory = (item) => {
+    const newStories = stories.filter(
+      (story) => item.objectId !== story.objectId
+    );
+    setStories(newStories);
+  };
 
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
@@ -73,7 +91,7 @@ const App = () => {
         <strong>{searchTerm}</strong>
       </p>
       <hr />
-      <List list={searchedStories} />
+      <List list={searchedStories} onRemoveItem={handleRemoveStory} />
     </div>
   );
 };
