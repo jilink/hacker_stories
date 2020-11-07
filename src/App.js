@@ -43,7 +43,12 @@ const useSemiPersistentState = (key, initialState) => {
 
 const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
 
-const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
+const SearchForm = ({
+  searchTerm,
+  onSearchInput,
+  onSearchSubmit,
+  buttonType,
+}) => (
   <form onSubmit={onSearchSubmit} className="search-form">
     <InputWithLabel
       id="search"
@@ -57,7 +62,7 @@ const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
     <button
       type="submit"
       disabled={!searchTerm}
-      className="button button_large"
+      className={`button ${buttonType}`}
     >
       Submit
     </button>
@@ -148,6 +153,7 @@ const App = () => {
         onSearchSubmit={handleSearchSubmit}
         onSearchInput={handleSearchInput}
         searchTerm={searchTerm}
+        buttonType="button_large"
       />
       {stories.isError && <p>Something went wrong ...</p>}
       {stories.isLoading ? (
