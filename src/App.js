@@ -4,7 +4,7 @@ import React, { useState } from "react";
 
 const List = ({ list, onRemoveItem }) =>
   list.map((item) => (
-    <Item key={item.objectId} item={item} onRemoveItem={onRemoveItem} />
+    <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />
   ));
 
 const Item = ({ item, onRemoveItem }) => {
@@ -25,30 +25,6 @@ const Item = ({ item, onRemoveItem }) => {
   );
 };
 
-const initialStories = [
-  {
-    title: "React",
-    url: "https://reactjs.org/",
-    author: "Jordan walke",
-    num_comments: 3,
-    points: 4,
-    objectId: 0,
-  },
-  {
-    title: "Redux",
-    url: "https://redux.js.org/",
-    author: "Dan truc",
-    num_comments: 2,
-    points: 5,
-    objectId: 1,
-  },
-];
-
-const getAsyncStories = () =>
-  new Promise((resolve) =>
-    setTimeout(() => resolve({ data: { stories: initialStories } }), 2000)
-  );
-
 const useSemiPersistentState = (key, initialState) => {
   const [value, setValue] = React.useState(
     localStorage.getItem(key) || initialState
@@ -60,6 +36,7 @@ const useSemiPersistentState = (key, initialState) => {
   return [value, setValue];
 };
 
+const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
   const storiesReducer = (state, action) => {
@@ -87,7 +64,7 @@ const App = () => {
         return {
           ...state,
           data: state.data.filter(
-            (story) => action.payload.objectId !== story.objectId
+            (story) => action.payload.objectID !== story.objectID
           ),
         };
       default:
@@ -101,16 +78,18 @@ const App = () => {
   });
 
   React.useEffect(() => {
+    if (!searchTerm) return;
     dispatchStories({ type: "STORIES_FETCH_INIT" });
-    getAsyncStories()
+    fetch(`${API_ENDPOINT}${searchTerm}`)
+      .then((response) => response.json())
       .then((result) => {
         dispatchStories({
           type: "STORIES_FETCH_SUCESS",
-          payload: result.data.stories,
+          payload: result.hits,
         });
       })
       .catch(() => dispatchStories({ type: "STORIES_FETCH_FAILURE" }));
-  }, []);
+  }, [searchTerm]);
 
   const handleRemoveStory = (item) => {
     dispatchStories({
@@ -122,10 +101,6 @@ const App = () => {
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
-
-  const searchedStories = stories.data.filter((story) =>
-    story.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   return (
     <div>
@@ -147,7 +122,7 @@ const App = () => {
       {stories.isLoading ? (
         <p>Loading ... </p>
       ) : (
-        <List list={searchedStories} onRemoveItem={handleRemoveStory} />
+        <List list={stories.data} onRemoveItem={handleRemoveStory} />
       )}
     </div>
   );
