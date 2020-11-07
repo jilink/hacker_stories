@@ -37,8 +37,19 @@ const useSemiPersistentState = (key, initialState) => {
 };
 
 const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
+  const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
+
+  const handleSearchInput = (event) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const handleSearchSubmit = (event) => {
+    setUrl(`${API_ENDPOINT}${searchTerm}`);
+  };
+
   const storiesReducer = (state, action) => {
     switch (action.type) {
       case "STORIES_FETCH_INIT":
@@ -80,7 +91,7 @@ const App = () => {
   const handleFetchStories = React.useCallback(() => {
     if (!searchTerm) return;
     dispatchStories({ type: "STORIES_FETCH_INIT" });
-    fetch(`${API_ENDPOINT}${searchTerm}`)
+    fetch(url)
       .then((response) => response.json())
       .then((result) => {
         dispatchStories({
@@ -89,7 +100,7 @@ const App = () => {
         });
       })
       .catch(() => dispatchStories({ type: "STORIES_FETCH_FAILURE" }));
-  }, [searchTerm]);
+  }, [url]);
 
   React.useEffect(() => {
     handleFetchStories();
@@ -102,10 +113,6 @@ const App = () => {
     });
   };
 
-  const handleSearch = (event) => {
-    setSearchTerm(event.target.value);
-  };
-
   return (
     <div>
       <h1>My hacker stories</h1>
@@ -113,11 +120,16 @@ const App = () => {
       <InputWithLabel
         id="search"
         value={searchTerm}
-        onInputChange={handleSearch}
+        onInputChange={handleSearchInput}
         isFocused
       >
         <strong>Search:</strong>
       </InputWithLabel>
+
+      <button type="button" disabled={!searchTerm} onClick={handleSearchSubmit}>
+        Submit
+      </button>
+
       <p>
         <strong>{searchTerm}</strong>
       </p>
