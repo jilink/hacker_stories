@@ -1,5 +1,5 @@
 import logo from "./logo.svg";
-import "./App.css";
+import styles from "./App.module.css";
 import React, { useState } from "react";
 import axios from "axios";
 
@@ -10,7 +10,7 @@ const List = ({ list, onRemoveItem }) =>
 
 const Item = ({ item, onRemoveItem }) => {
   return (
-    <div className="item">
+    <div className={styles.item}>
       <span style={{ width: "40%" }}>
         <a href={item.url}>{item.title}</a>
       </span>
@@ -21,7 +21,7 @@ const Item = ({ item, onRemoveItem }) => {
         <button
           type="button"
           onClick={() => onRemoveItem(item)}
-          className="button button_small"
+          className={`${styles.button} ${styles.buttonSmall}`}
         >
           Dismiss
         </button>
@@ -43,13 +43,8 @@ const useSemiPersistentState = (key, initialState) => {
 
 const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
 
-const SearchForm = ({
-  searchTerm,
-  onSearchInput,
-  onSearchSubmit,
-  buttonType,
-}) => (
-  <form onSubmit={onSearchSubmit} className="search-form">
+const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
+  <form onSubmit={onSearchSubmit} className={styles.SearchForm}>
     <InputWithLabel
       id="search"
       value={searchTerm}
@@ -62,7 +57,7 @@ const SearchForm = ({
     <button
       type="submit"
       disabled={!searchTerm}
-      className={`button ${buttonType}`}
+      className={`${styles.button} ${styles.buttonLarge}`}
     >
       Submit
     </button>
@@ -146,14 +141,13 @@ const App = () => {
   };
 
   return (
-    <div className="container">
-      <h1 className="headline-primary">My hacker stories</h1>
+    <div className={styles.container}>
+      <h1 className={styles.headlinePrimary}>My hacker stories</h1>
 
       <SearchForm
         onSearchSubmit={handleSearchSubmit}
         onSearchInput={handleSearchInput}
         searchTerm={searchTerm}
-        buttonType="button_large"
       />
       {stories.isError && <p>Something went wrong ...</p>}
       {stories.isLoading ? (
@@ -181,7 +175,7 @@ const InputWithLabel = ({
   }, [isFocused]);
   return (
     <>
-      <label htmlFor={id} className="label">
+      <label htmlFor={id} className={styles.label}>
         {children}
       </label>
       &nbsp;
@@ -191,7 +185,7 @@ const InputWithLabel = ({
         value={value}
         onChange={onInputChange}
         ref={inputRef}
-        className="input"
+        className={styles.input}
       />
     </>
   );
