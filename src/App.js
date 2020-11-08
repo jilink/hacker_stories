@@ -82,10 +82,13 @@ const StyledInput = styled.input`
   font-size: 24px;
 `;
 
-const List = ({ list, onRemoveItem }) =>
-  list.map((item) => (
-    <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />
-  ));
+const List = React.memo(
+  ({ list, onRemoveItem }) =>
+    console.log("B:list") ||
+    list.map((item) => (
+      <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />
+    ))
+);
 
 const Item = ({ item, onRemoveItem }) => {
   return (
@@ -110,12 +113,18 @@ const Item = ({ item, onRemoveItem }) => {
 };
 
 const useSemiPersistentState = (key, initialState) => {
+  const isMounted = React.useRef(false);
   const [value, setValue] = React.useState(
     localStorage.getItem(key) || initialState
   );
 
   React.useEffect(() => {
-    localStorage.setItem(key, value);
+    if (!isMounted.current) {
+      isMounted.current = true;
+    } else {
+      console.log("A");
+      localStorage.setItem(key, value);
+    }
   }, [value, key]);
   return [value, setValue];
 };
@@ -142,6 +151,11 @@ const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
     </StyledButtonLarge>
   </StyledSearchForm>
 );
+
+const getSumComments = (stories) => {
+  console.log("C");
+  return stories.data.reduce((result, value) => result + value.num_comments, 0);
+};
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
@@ -212,16 +226,21 @@ const App = () => {
     handleFetchStories();
   }, [handleFetchStories]);
 
-  const handleRemoveStory = (item) => {
+  const handleRemoveStory = React.useCallback((item) => {
     dispatchStories({
       type: "REMOVE_STORIES",
       payload: item,
     });
-  };
+  }, []);
 
+  console.log("B:app");
+
+  const sumComments = React.useMemo(() => getSumComments(stories), [stories]);
   return (
     <StyledContainer>
-      <StyledHeadlinePrimary>My hacker stories</StyledHeadlinePrimary>
+      <StyledHeadlinePrimary>
+        My hacker stories with {sumComments} comments.
+      </StyledHeadlinePrimary>
 
       <SearchForm
         onSearchSubmit={handleSearchSubmit}
