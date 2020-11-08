@@ -3,6 +3,7 @@ import styles from "./App.module.css";
 import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
+import { ReactComponent as Check } from "./check.svg";
 
 const StyledContainer = styled.div`
   height: 100vw;
@@ -101,7 +102,7 @@ const Item = ({ item, onRemoveItem }) => {
           onClick={() => onRemoveItem(item)}
           className={`${styles.button} ${styles.buttonSmall}`}
         >
-          Dismiss
+          <Check height="18px" width="18px" />
         </StyledButtonSmall>
       </StyledColumn>
     </StyledItem>
