@@ -184,6 +184,69 @@ type Story = {
   points: number;
 };
 
+type StoriesState = {
+  data: Stories;
+  isLoading: boolean;
+  isError: boolean;
+};
+
+interface StoriesFetchInitAction {
+  type: "STORIES_FETCH_INIT";
+}
+
+interface StoriesFetchSucessAction {
+  type: "STORIES_FETCH_SUCESS";
+  payload: Stories;
+}
+
+interface StoriesFetchFailureAction {
+  type: "STORIES_FETCH_FAILURE";
+}
+
+interface StoriesRemoveAction {
+  type: "REMOVE_STORIES";
+  payload: Story;
+}
+
+type StoriesAction =
+  | StoriesFetchInitAction
+  | StoriesFetchSucessAction
+  | StoriesFetchFailureAction
+  | StoriesRemoveAction;
+
+const storiesReducer = (state: StoriesState, action: StoriesAction) => {
+  switch (action.type) {
+    case "STORIES_FETCH_INIT":
+      return {
+        ...state,
+        isLoading: true,
+        isError: false,
+      };
+    case "STORIES_FETCH_SUCESS":
+      return {
+        ...state,
+        isLoading: false,
+        isError: false,
+        data: action.payload,
+      };
+    case "STORIES_FETCH_FAILURE":
+      return {
+        ...state,
+        isLoading: false,
+        isError: true,
+      };
+    case "REMOVE_STORIES":
+      return {
+        ...state,
+        data: state.data.filter(
+          (story) => action.payload.objectID !== story.objectID
+        ),
+      };
+    default:
+      throw new Error();
+  }
+};
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
   const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
@@ -197,68 +260,6 @@ const App = () => {
     event.preventDefault(); // html basic behaviour wouls reload the page
   };
 
-  type StoriesState = {
-    data: Stories;
-    isLoading: boolean;
-    isError: boolean;
-  };
-
-  interface StoriesFetchInitAction {
-    type: "STORIES_FETCH_INIT";
-  }
-
-  interface StoriesFetchSucessAction {
-    type: "STORIES_FETCH_SUCESS";
-    payload: Stories;
-  }
-
-  interface StoriesFetchFailureAction {
-    type: "STORIES_FETCH_FAILURE";
-  }
-
-  interface StoriesRemoveAction {
-    type: "REMOVE_STORIES";
-    payload: Story;
-  }
-
-  type StoriesAction =
-    | StoriesFetchInitAction
-    | StoriesFetchSucessAction
-    | StoriesFetchFailureAction
-    | StoriesRemoveAction;
-
-  const storiesReducer = (state: StoriesState, action: StoriesAction) => {
-    switch (action.type) {
-      case "STORIES_FETCH_INIT":
-        return {
-          ...state,
-          isLoading: true,
-          isError: false,
-        };
-      case "STORIES_FETCH_SUCESS":
-        return {
-          ...state,
-          isLoading: false,
-          isError: false,
-          data: action.payload,
-        };
-      case "STORIES_FETCH_FAILURE":
-        return {
-          ...state,
-          isLoading: false,
-          isError: true,
-        };
-      case "REMOVE_STORIES":
-        return {
-          ...state,
-          data: state.data.filter(
-            (story) => action.payload.objectID !== story.objectID
-          ),
-        };
-      default:
-        throw new Error();
-    }
-  };
   const [stories, dispatchStories] = React.useReducer(storiesReducer, {
     data: [],
     isLoading: false,
@@ -349,3 +350,5 @@ const InputWithLabel = ({
 };
 
 export default App;
+
+export { storiesReducer, SearchForm, InputWithLabel, List, Item };
