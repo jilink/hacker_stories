@@ -25,7 +25,7 @@ const StyledItem = styled.div`
   padding-bottom: 5px;
 `;
 
-const StyledColumn = styled.span`
+const StyledColumn = styled.span<{ width: string }>`
   padding: 0 5px;
   white-space: nowrap;
   overflow: hidden;
@@ -82,15 +82,27 @@ const StyledInput = styled.input`
   font-size: 24px;
 `;
 
-const List = React.memo(
-  ({ list, onRemoveItem }) =>
-    console.log("B:list") ||
-    list.map((item) => (
+type Stories = Array<Story>;
+
+type ListProps = {
+  list: Stories;
+  onRemoveItem: (item: Story) => void;
+};
+
+const List = ({ list, onRemoveItem }: ListProps) => (
+  <>
+    {list.map((item) => (
       <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />
-    ))
+    ))}
+  </>
 );
 
-const Item = ({ item, onRemoveItem }) => {
+type ItemProps = {
+  item: Story;
+  onRemoveItem: (item: Story) => void;
+};
+
+const Item = ({ item, onRemoveItem }: ItemProps) => {
   return (
     <StyledItem>
       <StyledColumn width="40%">
@@ -112,7 +124,10 @@ const Item = ({ item, onRemoveItem }) => {
   );
 };
 
-const useSemiPersistentState = (key, initialState) => {
+const useSemiPersistentState = (
+  key: string,
+  initialState: string
+): [string, (newValue: string) => void] => {
   const isMounted = React.useRef(false);
   const [value, setValue] = React.useState(
     localStorage.getItem(key) || initialState
@@ -122,7 +137,6 @@ const useSemiPersistentState = (key, initialState) => {
     if (!isMounted.current) {
       isMounted.current = true;
     } else {
-      console.log("A");
       localStorage.setItem(key, value);
     }
   }, [value, key]);
@@ -131,7 +145,16 @@ const useSemiPersistentState = (key, initialState) => {
 
 const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
 
-const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
+type SearchFormProps = {
+  searchTerm: string;
+  onSearchInput: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onSearchSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+};
+const SearchForm = ({
+  searchTerm,
+  onSearchInput,
+  onSearchSubmit,
+}: SearchFormProps) => (
   <StyledSearchForm onSubmit={onSearchSubmit} className={styles.SearchForm}>
     <InputWithLabel
       id="search"
@@ -152,25 +175,59 @@ const SearchForm = ({ searchTerm, onSearchInput, onSearchSubmit }) => (
   </StyledSearchForm>
 );
 
-const getSumComments = (stories) => {
-  console.log("C");
-  return stories.data.reduce((result, value) => result + value.num_comments, 0);
+type Story = {
+  objectID: string;
+  url: string;
+  title: string;
+  author: string;
+  num_comments: number;
+  points: number;
 };
 
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
   const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
 
-  const handleSearchInput = (event) => {
+  const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
-  const handleSearchSubmit = (event) => {
+  const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     setUrl(`${API_ENDPOINT}${searchTerm}`);
     event.preventDefault(); // html basic behaviour wouls reload the page
   };
 
-  const storiesReducer = (state, action) => {
+  type StoriesState = {
+    data: Stories;
+    isLoading: boolean;
+    isError: boolean;
+  };
+
+  interface StoriesFetchInitAction {
+    type: "STORIES_FETCH_INIT";
+  }
+
+  interface StoriesFetchSucessAction {
+    type: "STORIES_FETCH_SUCESS";
+    payload: Stories;
+  }
+
+  interface StoriesFetchFailureAction {
+    type: "STORIES_FETCH_FAILURE";
+  }
+
+  interface StoriesRemoveAction {
+    type: "REMOVE_STORIES";
+    payload: Story;
+  }
+
+  type StoriesAction =
+    | StoriesFetchInitAction
+    | StoriesFetchSucessAction
+    | StoriesFetchFailureAction
+    | StoriesRemoveAction;
+
+  const storiesReducer = (state: StoriesState, action: StoriesAction) => {
     switch (action.type) {
       case "STORIES_FETCH_INIT":
         return {
@@ -226,21 +283,16 @@ const App = () => {
     handleFetchStories();
   }, [handleFetchStories]);
 
-  const handleRemoveStory = React.useCallback((item) => {
+  const handleRemoveStory = React.useCallback((item: Story) => {
     dispatchStories({
       type: "REMOVE_STORIES",
       payload: item,
     });
   }, []);
 
-  console.log("B:app");
-
-  const sumComments = React.useMemo(() => getSumComments(stories), [stories]);
   return (
     <StyledContainer>
-      <StyledHeadlinePrimary>
-        My hacker stories with {sumComments} comments.
-      </StyledHeadlinePrimary>
+      <StyledHeadlinePrimary>My hacker stories</StyledHeadlinePrimary>
 
       <SearchForm
         onSearchSubmit={handleSearchSubmit}
@@ -257,6 +309,15 @@ const App = () => {
   );
 };
 
+type InputWithLabelProps = {
+  id: string;
+  value: string;
+  type?: string;
+  onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  isFocused?: boolean;
+  children: React.ReactNode;
+};
+
 const InputWithLabel = ({
   id,
   value,
@@ -264,8 +325,8 @@ const InputWithLabel = ({
   type = "text",
   isFocused,
   children,
-}) => {
-  const inputRef = React.useRef();
+}: InputWithLabelProps) => {
+  const inputRef = React.useRef<HTMLInputElement>(null!);
   React.useEffect(() => {
     if (isFocused && inputRef.current) {
       inputRef.current.focus();
