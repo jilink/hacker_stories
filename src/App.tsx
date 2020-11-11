@@ -162,7 +162,7 @@ const SearchForm = ({
       onInputChange={onSearchInput}
       isFocused
     >
-      <strong>Search:</strong>
+      Search:
     </InputWithLabel>
 
     <StyledButtonLarge
