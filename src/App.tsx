@@ -129,16 +129,56 @@ const storiesReducer = (state: StoriesState, action: StoriesAction) => {
   }
 };
 
+const getUrl = (searchTerm: string) => `${API_ENDPOINT}${searchTerm}`;
+const extractSearchTerm = (url: string) => url.replace(API_ENDPOINT, "");
+const getLastSearches = (urls: string[]) =>
+  urls
+    .reduce((result: string[], url, index) => {
+      const searchTerm: string = extractSearchTerm(url);
+      if (index === 0) {
+        return result.concat(searchTerm);
+      }
+
+      const previousSearchTerm = result[result.length - 1];
+      if (searchTerm === previousSearchTerm) {
+        return result;
+      } else {
+        return result.concat(searchTerm);
+      }
+    }, [])
+    .slice(-6)
+    .slice(0, -1)
+    .map((url) => extractSearchTerm(url));
+
+type LastSearchProps = {
+  lastSearches: string[];
+  onLastSearch: (searchTerm: string) => void;
+};
+const LastSearch = ({ lastSearches, onLastSearch }: LastSearchProps) => (
+  <>
+    {lastSearches.map((searchTerm, index) => (
+      <button
+        key={searchTerm + index}
+        type="button"
+        onClick={() => onLastSearch(searchTerm)}
+      >
+        {searchTerm}
+      </button>
+    ))}
+  </>
+);
+
 const App = () => {
   const [searchTerm, setSearchTerm] = useSemiPersistentState("search", "React");
-  const [url, setUrl] = React.useState(`${API_ENDPOINT}${searchTerm}`);
+  const [urls, setUrls] = React.useState([getUrl(searchTerm)]);
 
   const handleSearchInput = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
   };
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    setUrl(`${API_ENDPOINT}${searchTerm}`);
+    const url = getUrl(searchTerm);
+    setUrls(urls.concat(url));
     event.preventDefault(); // html basic behaviour wouls reload the page
   };
 
@@ -152,7 +192,8 @@ const App = () => {
     if (!searchTerm) return;
     dispatchStories({ type: "STORIES_FETCH_INIT" });
     try {
-      const result = await axios.get(url);
+      const lastUrl = urls[urls.length - 1];
+      const result = await axios.get(lastUrl);
       dispatchStories({
         type: "STORIES_FETCH_SUCESS",
         payload: result.data.hits,
@@ -160,7 +201,7 @@ const App = () => {
     } catch {
       dispatchStories({ type: "STORIES_FETCH_FAILURE" });
     }
-  }, [url]);
+  }, [urls]);
 
   React.useEffect(() => {
     handleFetchStories();
@@ -173,6 +214,14 @@ const App = () => {
     });
   }, []);
 
+  const handleLastSearch = (searchTerm: string) => {
+    setSearchTerm(searchTerm);
+    const url = getUrl(searchTerm);
+    setUrls(urls.concat(url));
+  };
+
+  const lastSearches = getLastSearches(urls);
+
   return (
     <StyledContainer>
       <StyledHeadlinePrimary>My hacker stories</StyledHeadlinePrimary>
@@ -182,6 +231,7 @@ const App = () => {
         onSearchInput={handleSearchInput}
         searchTerm={searchTerm}
       />
+      <LastSearch lastSearches={lastSearches} onLastSearch={handleLastSearch} />
       {stories.isError && <p>Something went wrong ...</p>}
       {stories.isLoading ? (
         <p>Loading ... </p>
