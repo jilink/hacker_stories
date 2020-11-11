@@ -2,23 +2,23 @@
 
 exports[`SearchForm renders snapshort 1`] = `
 <form
-  class="sc-iBPRYJ eqcdSN SearchForm"
+  class="sc-gKsewC ihyKbF SearchForm"
 >
   <label
-    class="sc-fubCfw hheqiO"
+    class="sc-eCssSg cRKVln"
     for="search"
   >
     Search:
   </label>
    
   <input
-    class="sc-pFZIQ hLhreU input"
+    class="sc-jSgupP iyXbdf input"
     id="search"
     type="text"
     value="React"
   />
   <button
-    class="sc-eCssSg sc-gKsewC cYlUCM GsgTL button buttonLarge"
+    class="sc-iBPRYJ sc-fubCfw eYbpqo htqYPq button buttonLarge"
     type="submit"
   >
     Submit

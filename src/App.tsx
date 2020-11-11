@@ -3,7 +3,8 @@ import styles from "./App.module.css";
 import React, { useState } from "react";
 import axios from "axios";
 import styled from "styled-components";
-import { ReactComponent as Check } from "./check.svg";
+import List from "./List";
+import SearchForm from "./SearchForm";
 
 const StyledContainer = styled.div`
   height: 100vw;
@@ -17,26 +18,6 @@ const StyledHeadlinePrimary = styled.h1`
   font-size: 48px;
   font-weight: 300;
   letter-spacing: 2px;
-`;
-
-const StyledItem = styled.div`
-  display: flex;
-  align-items: center;
-  padding-bottom: 5px;
-`;
-
-const StyledColumn = styled.span<{ width: string }>`
-  padding: 0 5px;
-  white-space: nowrap;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-
-  a {
-    color: inherit;
-  }
-
-  width: ${(props) => props.width};
 `;
 
 const StyledButton = styled.button`
@@ -53,76 +34,7 @@ const StyledButton = styled.button`
   }
 `;
 
-const StyledButtonSmall = styled(StyledButton)`
-  padding: 5px;
-`;
-
-const StyledButtonLarge = styled(StyledButton)`
-  padding: 10px;
-`;
-
-const StyledSearchForm = styled.form`
-  padding: 10px 0 20px 0;
-  display: flex;
-  align-items: baseline;
-`;
-
-const StyledLabel = styled.label`
-  border-top: 1px solid #171212;
-  border-left: 1px solid #171212;
-  padding-left: 5px;
-  font-size: 24px;
-`;
-
-const StyledInput = styled.input`
-  border: none;
-  border-bottom: 1px solid #171212;
-  background-color: transparent;
-
-  font-size: 24px;
-`;
-
 type Stories = Array<Story>;
-
-type ListProps = {
-  list: Stories;
-  onRemoveItem: (item: Story) => void;
-};
-
-const List = ({ list, onRemoveItem }: ListProps) => (
-  <>
-    {list.map((item) => (
-      <Item key={item.objectID} item={item} onRemoveItem={onRemoveItem} />
-    ))}
-  </>
-);
-
-type ItemProps = {
-  item: Story;
-  onRemoveItem: (item: Story) => void;
-};
-
-const Item = ({ item, onRemoveItem }: ItemProps) => {
-  return (
-    <StyledItem>
-      <StyledColumn width="40%">
-        <a href={item.url}>{item.title}</a>
-      </StyledColumn>
-      <StyledColumn width="30%">{item.author}</StyledColumn>
-      <StyledColumn width="10%">{item.num_comments}</StyledColumn>
-      <StyledColumn width="10%">{item.points}</StyledColumn>
-      <StyledColumn width="10%">
-        <StyledButtonSmall
-          type="button"
-          onClick={() => onRemoveItem(item)}
-          className={`${styles.button} ${styles.buttonSmall}`}
-        >
-          <Check height="18px" width="18px" />
-        </StyledButtonSmall>
-      </StyledColumn>
-    </StyledItem>
-  );
-};
 
 const useSemiPersistentState = (
   key: string,
@@ -144,36 +56,6 @@ const useSemiPersistentState = (
 };
 
 const API_ENDPOINT = "https://hn.algolia.com/api/v1/search?query=";
-
-type SearchFormProps = {
-  searchTerm: string;
-  onSearchInput: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onSearchSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
-};
-const SearchForm = ({
-  searchTerm,
-  onSearchInput,
-  onSearchSubmit,
-}: SearchFormProps) => (
-  <StyledSearchForm onSubmit={onSearchSubmit} className={styles.SearchForm}>
-    <InputWithLabel
-      id="search"
-      value={searchTerm}
-      onInputChange={onSearchInput}
-      isFocused
-    >
-      Search:
-    </InputWithLabel>
-
-    <StyledButtonLarge
-      type="submit"
-      disabled={!searchTerm}
-      className={`${styles.button} ${styles.buttonLarge}`}
-    >
-      Submit
-    </StyledButtonLarge>
-  </StyledSearchForm>
-);
 
 type Story = {
   objectID: string;
@@ -310,45 +192,6 @@ const App = () => {
   );
 };
 
-type InputWithLabelProps = {
-  id: string;
-  value: string;
-  type?: string;
-  onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  isFocused?: boolean;
-  children: React.ReactNode;
-};
-
-const InputWithLabel = ({
-  id,
-  value,
-  onInputChange,
-  type = "text",
-  isFocused,
-  children,
-}: InputWithLabelProps) => {
-  const inputRef = React.useRef<HTMLInputElement>(null!);
-  React.useEffect(() => {
-    if (isFocused && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isFocused]);
-  return (
-    <>
-      <StyledLabel htmlFor={id}>{children}</StyledLabel>
-      &nbsp;
-      <StyledInput
-        id={id}
-        type={type}
-        value={value}
-        onChange={onInputChange}
-        ref={inputRef}
-        className={styles.input}
-      />
-    </>
-  );
-};
-
 export default App;
 
-export { storiesReducer, SearchForm, InputWithLabel, List, Item };
+export { storiesReducer };
