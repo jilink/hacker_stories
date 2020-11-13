@@ -118,8 +118,10 @@ const storiesReducer = (state: StoriesState, action: StoriesAction) => {
         ...state,
         isLoading: false,
         isError: false,
-        data: action.payload.list,
-        page: action.payload.page,
+        data:
+          action.payload.page === 0
+            ? action.payload.list
+            : state.data.concat(action.payload.list),
       };
     case "STORIES_FETCH_FAILURE":
       return {
@@ -257,12 +259,12 @@ const App = () => {
       />
       <LastSearch lastSearches={lastSearches} onLastSearch={handleLastSearch} />
       {stories.isError && <p>Something went wrong ...</p>}
+      <List list={stories.data} onRemoveItem={handleRemoveStory} />
       {stories.isLoading ? (
         <p>Loading ... </p>
       ) : (
-        <List list={stories.data} onRemoveItem={handleRemoveStory} />
+        <button onClick={handleMore}> MORE </button>
       )}
-      <button onClick={handleMore}> MORE </button>
     </StyledContainer>
   );
 };
